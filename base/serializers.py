@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
+from .models import BlogContent
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
@@ -38,3 +39,13 @@ class UserLoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("Must include 'username' and 'password'.")
 
         return data
+    
+
+class BlogContentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogContent
+        fields = '__all__'
+    author = serializers.SerializerMethodField()
+
+    def get_author(self, obj):
+        return obj.author.username
