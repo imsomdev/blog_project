@@ -29,7 +29,7 @@ class BlogContentView(APIView):
 
         if serializer.is_valid():
             # Assuming you have user authentication in place
-            serializer.save(author=request.user)
+            serializer.save(author=request.user) ## Here it's authenticating
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
