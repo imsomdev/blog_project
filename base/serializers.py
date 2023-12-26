@@ -49,3 +49,9 @@ class BlogContentSerializer(serializers.ModelSerializer):
 
     def get_author(self, obj):
         return obj.author.username
+
+
+class BlogContentListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogContent
+        fields = ['title']
