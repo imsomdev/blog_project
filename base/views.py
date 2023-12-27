@@ -48,7 +48,22 @@ class BlogContentListView(APIView):
             serializer = BlogContentListSerializer(blogs, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
     
-# To delete a blog post using pk
+
+    def put(self, request, pk):
+        try:
+            blog_post = BlogContent.objects.get(pk=pk)
+        except BlogContent.DoesNotExist:
+            raise Http404
+        if blog_post.author == request.user or request.user.is_staff:
+            serializer = BlogContentSerializer(blog_post, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'detail': 'You do not have permission to update this blog post.'},status=status.HTTP_403_FORBIDDEN)
+    # To delete a blog post using pk
     def delete(self, request, pk):
         try:
             blog_post = BlogContent.objects.get(pk=pk)
