@@ -63,6 +63,7 @@ class BlogContentListView(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'detail': 'You do not have permission to update this blog post.'},status=status.HTTP_403_FORBIDDEN)
+        
     # To delete a blog post using pk
     def delete(self, request, pk):
         try:
