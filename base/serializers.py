@@ -42,13 +42,15 @@ class UserLoginSerializer(serializers.Serializer):
     
 
 class BlogContentSerializer(serializers.ModelSerializer):
+    # author = serializers.SerializerMethodField()
+
     class Meta:
         model = BlogContent
-        fields = '__all__'
-    author = serializers.SerializerMethodField()
+        # fields = '__all__'
+        fields = ['title', 'content']
 
-    def get_author(self, obj):
-        return obj.author.username
+    # def get_author(self, obj):
+    #     return obj.author.username
 
 
 class BlogContentListSerializer(serializers.ModelSerializer):
@@ -57,10 +59,10 @@ class BlogContentListSerializer(serializers.ModelSerializer):
         fields = ['title']
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
     class Meta:
         model = UserProfile
         fields = '__all__'
-    user = serializers.SerializerMethodField()
 
     def get_user(self, obj):
         return obj.user.username

@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 from simple_history.models import HistoricalRecords
-from django.core.validators import MinLengthValidator, MaxLengthValidator
 
 
 class BlogContent(models.Model):
@@ -15,11 +14,7 @@ class BlogContent(models.Model):
 
     def __str__(self):
         return self.title
-
-
-from django.db import models
-from django.contrib.auth.models import User
-from django.core.validators import MinLengthValidator, MaxLengthValidator
+    
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
