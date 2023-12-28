@@ -2,8 +2,8 @@ from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import UserRegistrationSerializer, UserLoginSerializer, BlogContentSerializer, BlogContentListSerializer
-from .models import BlogContent
+from .serializers import UserRegistrationSerializer, UserLoginSerializer, BlogContentSerializer, BlogContentListSerializer, UserProfileSerializer
+from .models import BlogContent, UserProfile
 
 
 class UserRegistrationView(APIView):
@@ -76,3 +76,14 @@ class BlogContentListView(APIView):
         else:
             return Response({'detail': 'You do not have permission to delete this blog post.'}, status=status.HTTP_403_FORBIDDEN)
 
+class UserProfileView(APIView):
+    def post(self, request):
+        existing_user = UserProfile.objects.filter(user=request.user).first()
+        if existing_user:
+            return Response({'detail': 'User Profile Alreday Exists, Use Update to make'})
+        serializer = UserProfileSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

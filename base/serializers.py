@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from .models import BlogContent
+from .models import BlogContent, UserProfile
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
@@ -55,3 +55,22 @@ class BlogContentListSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogContent
         fields = ['title']
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = '__all__'
+    user = serializers.SerializerMethodField()
+
+    def get_user(self, obj):
+        return obj.user.username
+    
+    def validate_ph_no(self, value):
+        if not value.isdigit():
+            raise serializers.ValidationError("Phone number must contain only numeric characters.")
+        return value
+
+    def validate_pin(self, value):
+        if not value.isdigit():
+            raise serializers.ValidationError("PIN must contain only numeric characters.")
+        return value
