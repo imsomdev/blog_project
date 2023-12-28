@@ -28,7 +28,7 @@ class BlogContentView(APIView):
         serializer = BlogContentSerializer(data=request.data)
         if serializer.is_valid():
             # Assuming you have user authentication in place
-            serializer.save(author=request.user) ## Here it's authenticating
+            serializer.save(author=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -84,6 +84,17 @@ class UserProfileView(APIView):
         serializer = UserProfileSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def put(self, request):
+        existing_user = UserProfile.objects.filter(user=request.user).first()
+        if not existing_user:
+            return Response ({'Profile not created, use POST to first create profile'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = UserProfileSerializer(existing_user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
