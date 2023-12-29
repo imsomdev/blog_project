@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import UserRegistrationSerializer, UserLoginSerializer, BlogContentSerializer, BlogContentListSerializer, UserProfileSerializer
 from .models import BlogContent, UserProfile
+from django.contrib.auth.models import User
 
 
 class UserRegistrationView(APIView):
@@ -77,6 +78,19 @@ class BlogContentListView(APIView):
             return Response({'detail': 'You do not have permission to delete this blog post.'}, status=status.HTTP_403_FORBIDDEN)
 
 class UserProfileView(APIView):
+    def get(self, request, username):
+        try:
+            user = User.objects.get(username=username)
+            print(user)
+            user_profile = UserProfile.objects.get(user=user)
+            print(user_profile)
+            serializer = UserProfileSerializer(user_profile)
+            return Response(serializer.data)
+        except User.DoesNotExist:
+            raise Http404
+        except UserProfile.DoesNotExist:
+            raise Http404
+
     def post(self, request):
         existing_user = UserProfile.objects.filter(user=request.user).first()
         if existing_user:
