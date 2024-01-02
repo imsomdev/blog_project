@@ -2,8 +2,8 @@ from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import UserRegistrationSerializer, UserLoginSerializer, BlogContentSerializer, BlogContentListSerializer, UserProfileSerializer
-from .models import BlogContent, UserProfile
+from .serializers import UserRegistrationSerializer, UserLoginSerializer, BlogContentSerializer, BlogContentListSerializer, UserProfileSerializer, UserCommentSerializer
+from .models import BlogContent, UserProfile, UserComment
 from django.contrib.auth.models import User
 
 
@@ -109,6 +109,21 @@ class UserProfileView(APIView):
         serializer = UserProfileSerializer(existing_user, data=request.data)
         if serializer.is_valid():
             serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    
+class UserCommentView(APIView):
+    def post(self, request, pk):
+        try:
+            blog_post = BlogContent.objects.get(pk=pk)
+        except BlogContent.DoesNotExist:
+            return Response({"error": "Blog post not found"}, status=status.HTTP_404_NOT_FOUND)
+        request.data['blog_post'] = blog_post.id
+        serializer = UserCommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user, post=blog_post)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

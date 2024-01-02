@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from .models import BlogContent, UserProfile
+from .models import BlogContent, UserProfile, UserComment
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
@@ -76,3 +76,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if not value.isdigit():
             raise serializers.ValidationError("PIN must contain only numeric characters.")
         return value
+    
+class UserCommentSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserComment
+        fields = ['user', 'comment']
+        
+    def get_user(self, obj):
+        return obj.user.username
+
+    
