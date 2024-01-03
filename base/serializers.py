@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from .models import BlogContent, UserProfile, UserComment
+from .models import BlogContent, UserProfile, UserComment, BlogPostLike
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
@@ -86,5 +86,8 @@ class UserCommentSerializer(serializers.ModelSerializer):
         
     def get_user(self, obj):
         return obj.user.username
-
     
+class BlogPostLikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogPostLike
+        fields = ['user', 'post', 'created_at']

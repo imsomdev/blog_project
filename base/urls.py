@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import UserRegistrationView, UserLoginView, BlogContentView, BlogContentListView,UserProfileView, UserCommentView
+from .views import BlogPostLikeView, UserRegistrationView, UserLoginView, BlogContentView, BlogContentListView,UserProfileView, UserCommentView
 
 urlpatterns = [
     path('register', UserRegistrationView.as_view(), name='UserRegistrationView'),
@@ -11,4 +11,5 @@ urlpatterns = [
     path('profile/update', UserProfileView.as_view(), name='UserProfileViewUpdate'),
     path('profile/<str:username>', UserProfileView.as_view(), name='UserProfileViewPublic'),
     path('blog-posts/<int:pk>/comment', UserCommentView.as_view(), name = 'UserCommentView'),
+    path('blog-posts/<int:pk>/like', BlogPostLikeView.as_view(), name='BlogPostLikeView'),
 ]

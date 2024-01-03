@@ -2,8 +2,8 @@ from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import UserRegistrationSerializer, UserLoginSerializer, BlogContentSerializer, BlogContentListSerializer, UserProfileSerializer, UserCommentSerializer
-from .models import BlogContent, UserProfile, UserComment
+from .serializers import UserRegistrationSerializer, UserLoginSerializer, BlogContentSerializer, BlogContentListSerializer, UserProfileSerializer, UserCommentSerializer, BlogPostLikeSerializer
+from .models import BlogContent, UserProfile, UserComment, BlogPostLike
 from django.contrib.auth.models import User
 
 
@@ -130,3 +130,29 @@ class UserCommentView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+
+class BlogPostLikeView(APIView):
+    def post(self, request, pk):
+        if not request.user.is_authenticated:
+            return Response({'error': 'Please login first'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            blog_post = BlogContent.objects.get(pk=pk)
+        except BlogContent.DoesNotExist:
+            return Response({"error": "Blog post not found"}, status=status.HTTP_404_NOT_FOUND)
+        # Check if the user has already liked the post
+        existing_like = BlogPostLike.objects.filter(user=request.user, post=blog_post).first()
+        if existing_like:
+            # User has already liked the post, so dislike it
+            existing_like.delete()
+            return Response({'message': 'Post disliked successfully'}, status=status.HTTP_200_OK)
+        else:
+            # User has not liked the post, so like it
+            like_data = {'user': request.user.id, 'post': blog_post.id}
+            serializer = BlogPostLikeSerializer(data=like_data)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response({'message': 'Post liked successfully'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
