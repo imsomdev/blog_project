@@ -1,5 +1,7 @@
 # Blog Backend API
 
+[![Status](https://img.shields.io/badge/status-active-success.svg)]()
+
 This project is a backend API for a blogging platform that enables user authentication, blog post creation, deletion, editing, liking, and commenting. It provides a RESTful API that can be integrated into various frontend applications.
 
 ## Features
@@ -20,3 +22,7 @@ This project is a backend API for a blogging platform that enables user authenti
 
 - Django: A high-level Python web framework.
 - Django REST Framework: A powerful and flexible toolkit for building Web APIs.
+
+## Database Used
+
+- PostgreSQL: The world's most advanced open source database
