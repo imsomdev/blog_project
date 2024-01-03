@@ -77,6 +77,7 @@ class BlogContentListView(APIView):
         else:
             return Response({'detail': 'You do not have permission to delete this blog post.'}, status=status.HTTP_403_FORBIDDEN)
 
+
 class UserProfileView(APIView):
     def get(self, request, username):
         try:
@@ -116,11 +117,13 @@ class UserProfileView(APIView):
     
 class UserCommentView(APIView):
     def post(self, request, pk):
+        if not request.user.is_authenticated:
+            return Response({'error': 'Please login first'}, status=status.HTTP_401_UNAUTHORIZED)
         try:
             blog_post = BlogContent.objects.get(pk=pk)
         except BlogContent.DoesNotExist:
             return Response({"error": "Blog post not found"}, status=status.HTTP_404_NOT_FOUND)
-        request.data['blog_post'] = blog_post.id
+        
         serializer = UserCommentSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user, post=blog_post)
