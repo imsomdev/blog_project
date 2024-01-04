@@ -6,7 +6,7 @@ from simple_history.models import HistoricalRecords
 class BlogContent(models.Model):
     title = models.CharField(max_length=100)
     content = models.TextField()
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     likes = models.ManyToManyField(User, through='BlogPostLike', related_name='liked_posts')
@@ -46,7 +46,7 @@ class UserComment(models.Model):
 
 class BlogPostLike(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    post = models.ForeignKey(BlogContent, on_delete=models.CASCADE)
+    post = models.ForeignKey(BlogContent, on_delete=models.CASCADE, related_name='like')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
