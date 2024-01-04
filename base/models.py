@@ -16,6 +16,10 @@ class BlogContent(models.Model):
         return self.title
     
 
+def profile_picture_path(instance, filename):
+    # Define the file path for storing profile pictures
+    return f'user_profiles/{instance.user.username}/profile_picture/{filename}'
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     bio = models.CharField(max_length=150, blank=True)
@@ -27,6 +31,7 @@ class UserProfile(models.Model):
         ('F', 'Female'),
     ]
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
+    profile_picture = models.ImageField(upload_to=profile_picture_path, blank=True, null=True)
     history = HistoricalRecords()
 
     def __str__(self):
