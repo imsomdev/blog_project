@@ -104,30 +104,21 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if value.size > max_size:
             raise serializers.ValidationError('Profile picture size must be under 2MB.')
         return value
-    
+
     def create(self, validated_data):
         gender = validated_data.get('gender', 'U')  # Default to unspecified gender if not provided
-        default_profile_picture_path = generate_default_profile_picture(gender)
 
-        # Save the default image to the storage
-        with open(default_profile_picture_path, 'rb') as file:
-            content = file.read()
-            default_picture = ContentFile(content, name='default_profile_picture')
-            validated_data.setdefault('profile_picture', default_picture)
+        # Check if profile picture is not provided or is set to None
+        if 'profile_picture' not in validated_data or validated_data['profile_picture'] is None:
+            default_profile_picture_path = generate_default_profile_picture(gender)
+
+            # Save the default image to the storage
+            with open(default_profile_picture_path, 'rb') as file:
+                content = file.read()
+                default_picture = ContentFile(content, name='default_profile_picture.jpg')
+                validated_data['profile_picture'] = default_picture
 
         return super().create(validated_data)
-
-    def update(self, instance, validated_data):
-        gender = validated_data.get('gender', instance.gender)  # Use existing gender if not provided
-        default_profile_picture_path = generate_default_profile_picture(gender)
-
-        # Save the default image to the storage
-        with open(default_profile_picture_path, 'rb') as file:
-            content = file.read()
-            default_picture = ContentFile(content, name='default_profile_picture')
-            validated_data.setdefault('profile_picture', default_picture)
-
-        return super().update(instance, validated_data)
     
 class UserCommentSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
