@@ -77,6 +77,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("PIN must contain only numeric characters.")
         return value
     
+    def validate_profile_picture(self, value):
+        max_size = 1 * 1024 * 1024  # 2MB in bytes
+        if value.size > max_size:
+            raise serializers.ValidationError('Profile picture size must be under 2MB.')
+        return value
+    
 class UserCommentSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
 
