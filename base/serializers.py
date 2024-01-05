@@ -23,6 +23,7 @@ def generate_default_profile_picture(gender):
         return random.choice(male_default_pictures)
     else:
         return random.choice(female_default_pictures)
+    
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
@@ -68,7 +69,7 @@ class BlogContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogContent
         # fields = '__all__'
-        fields = ['title', 'content']
+        fields = ['title', 'content', 'tags']
 
     # def get_author(self, obj):
     #     return obj.author.username
@@ -100,13 +101,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return value
     
     def validate_profile_picture(self, value):
-        max_size = 1 * 1024 * 1024  # 2MB in bytes
+        max_size = 1 * 1024 * 1024  # 1 MB in bytes
         if value.size > max_size:
             raise serializers.ValidationError('Profile picture size must be under 2MB.')
         return value
 
     def create(self, validated_data):
-        gender = validated_data.get('gender', 'U')  # Default to unspecified gender if not provided
+        gender = validated_data.get('gender', 'U')
 
         # Check if profile picture is not provided or is set to None
         if 'profile_picture' not in validated_data or validated_data['profile_picture'] is None:
