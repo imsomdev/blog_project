@@ -1,12 +1,10 @@
 from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, generics, filters
 from .serializers import UserRegistrationSerializer, UserLoginSerializer, BlogContentSerializer, BlogContentListSerializer, UserProfileSerializer, UserCommentSerializer, BlogPostLikeSerializer
-from .models import BlogContent, UserProfile, UserComment, BlogPostLike
+from .models import BlogContent, UserProfile, UserComment, BlogPostLike 
 from django.contrib.auth.models import User
-
-
 class UserRegistrationView(APIView):
     def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
@@ -156,3 +154,21 @@ class BlogPostLikeView(APIView):
                 return Response({'message': 'Post liked successfully'}, status=status.HTTP_201_CREATED)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+class DynamicSearch(generics.ListAPIView):
+    queryset = BlogContent.objects.all()
+    serializer_class = BlogContentSerializer
+    search_fields = ['content', 'title']
+    filter_backends = (filters.SearchFilter,)
+
+    def get_queryset(self):
+        search_param = self.request.query_params.get('search', None)
+        if not search_param:
+            return BlogContent.objects.none()
+        queryset = BlogContent.objects.filter(content__icontains=search_param)
+        return queryset
+    
+    def list(self, request):
+        queryset = self.get_queryset()
+        if not queryset:
+            return Response({'message': 'Please give some search input'}, status=status.HTTP_404_NOT_FOUND)

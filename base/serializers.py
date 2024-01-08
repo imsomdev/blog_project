@@ -64,15 +64,15 @@ class UserLoginSerializer(serializers.Serializer):
     
 
 class BlogContentSerializer(serializers.ModelSerializer):
-    # author = serializers.SerializerMethodField()
+    author = serializers.SerializerMethodField()
 
     class Meta:
         model = BlogContent
         # fields = '__all__'
-        fields = ['title', 'content', 'tags']
+        fields = ['title', 'content', 'author', 'tags']
 
-    # def get_author(self, obj):
-    #     return obj.author.username
+    def get_author(self, obj):
+        return obj.author.username
 
 
 class BlogContentListSerializer(serializers.ModelSerializer):
