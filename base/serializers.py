@@ -65,6 +65,7 @@ class UserLoginSerializer(serializers.Serializer):
 
 class BlogContentSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
+    tags = serializers.SerializerMethodField()
 
     class Meta:
         model = BlogContent
@@ -73,6 +74,9 @@ class BlogContentSerializer(serializers.ModelSerializer):
 
     def get_author(self, obj):
         return obj.author.username
+    
+    def get_tags(self, obj):
+        return [tag.name for tag in obj.tags.all()] if obj.tags.exists() else []
 
 
 class BlogContentListSerializer(serializers.ModelSerializer):
