@@ -105,7 +105,7 @@ class BlogContentListView(APIView):
 
         if blog_post.author == request.user or request.user.is_staff:
             blog_post.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response({'detail': 'Post Deleted!'}, status=status.HTTP_204_NO_CONTENT)
         else:
             return Response({'detail': 'You do not have permission to delete this blog post.'}, status=status.HTTP_403_FORBIDDEN)
 
