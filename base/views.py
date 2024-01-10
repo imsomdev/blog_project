@@ -229,7 +229,7 @@ class BlogPostLikeView(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
 
-class DynamicSearch(generics.ListAPIView):
+class DynamicSearchView(generics.ListAPIView):
     queryset = BlogContent.objects.all()
     serializer_class = BlogContentSerializer
     search_fields = ['content', 'title']
@@ -252,4 +252,10 @@ class DynamicSearch(generics.ListAPIView):
         if not queryset.exists():
             return Response({'message': 'Please provide some valid search input'}, status=status.HTTP_404_NOT_FOUND)
         return Response(serializer.data)
+    
+
+class FilterRecentPostView(generics.ListAPIView):
+    queryset = BlogContent.objects.order_by('-created_at')
+    serializer_class = BlogContentSerializer
+    
 
