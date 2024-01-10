@@ -73,6 +73,12 @@ class BlogContentSerializer(serializers.ModelSerializer):
         # fields = '__all__'
         fields = ['title', 'content', 'image', 'author', 'tags']
 
+    def to_representation(self, instance):
+        # Exclude the 'image' field from the serialized data
+        representation = super().to_representation(instance)
+        representation.pop('image', None)
+        return representation
+
     def get_author(self, obj):
         return obj.author.username
     
