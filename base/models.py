@@ -8,11 +8,14 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
-
+def blog_content_image_path(instance, filename):
+    # Define the file path for storing profile pictures
+    return f'user_profiles/{instance.author.username}/blog_image/{filename}'
 
 class BlogContent(models.Model):
     title = models.CharField(max_length=100)
     content = models.TextField()
+    image = models.ImageField(upload_to=blog_content_image_path, blank=True, null=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     tags = models.ManyToManyField(Tag, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

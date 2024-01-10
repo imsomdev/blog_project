@@ -70,7 +70,7 @@ class BlogContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogContent
         # fields = '__all__'
-        fields = ['title', 'content', 'author', 'tags']
+        fields = ['title', 'content', 'image', 'author', 'tags']
 
     def get_author(self, obj):
         return obj.author.username
@@ -107,7 +107,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def validate_profile_picture(self, value):
         max_size = 1 * 1024 * 1024  # 1 MB in bytes
         if value.size > max_size:
-            raise serializers.ValidationError('Profile picture size must be under 2MB.')
+            raise serializers.ValidationError('Profile picture size must be under 1MB.')
         return value
 
     def create(self, validated_data):

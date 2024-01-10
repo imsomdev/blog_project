@@ -43,7 +43,9 @@ class BlogContentView(APIView):
 
     @swagger_auto_schema(
         request_body=BlogContentSerializer,
-        responses={201: BlogContentSerializer, 400: 'Bad Request', 401: 'Unauthorized'}
+        responses={201: BlogContentSerializer, 
+                   400: 'Bad Request', 
+                   401: 'Unauthorized'}
     )
     def post(self, request):
         serializer = BlogContentSerializer(data=request.data)
