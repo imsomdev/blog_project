@@ -33,15 +33,15 @@ def profile_picture_path(instance, filename):
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    bio = models.CharField(max_length=150, blank=True)
-    address = models.CharField(max_length=255)
-    pin = models.CharField(max_length=6)
-    ph_no = models.CharField(max_length=10)
+    bio = models.CharField(max_length=150, blank=True, null=True)
+    address = models.CharField(max_length=255, blank=True, null=True)
+    pin = models.CharField(max_length=6, blank=True, null=True)
+    ph_no = models.CharField(max_length=10, blank=True, null=True)
     GENDER_CHOICES = [
         ('M', 'Male'),
         ('F', 'Female'),
     ]
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True, null=True)
     profile_picture = models.ImageField(upload_to=profile_picture_path, blank=True, null=True)
     history = HistoricalRecords()
 
@@ -57,7 +57,7 @@ class UserComment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.user.username
+        return self.post.title
 
 
 class BlogPostLike(models.Model):
