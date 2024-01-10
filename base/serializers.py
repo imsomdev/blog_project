@@ -5,16 +5,17 @@ from django.contrib.auth import authenticate
 from .models import BlogContent, UserProfile, UserComment, BlogPostLike
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+from pathlib import Path
 
 def generate_default_profile_picture(gender):
     # List of paths to default profile pictures based on gender
     male_default_pictures = [
-        '/media/somdev/84AE09BCAE09A82E/Programs/Programs and Frameworks/Django/blog_project/user_profiles/00.DefaultProfilePicture/M_Default.webp',
+        '/media/somdev/84AE09BCAE09A82E/Programs/Programs and Frameworks/Django/blog_project/user_profiles/00.DefaultProfilePicture/man-user-circle-icon.png',
         # Add more paths as needed
     ]
 
     female_default_pictures = [
-        '/media/somdev/84AE09BCAE09A82E/Programs/Programs and Frameworks/Django/blog_project/user_profiles/00.DefaultProfilePicture/F_Default.webp',
+        '/media/somdev/84AE09BCAE09A82E/Programs/Programs and Frameworks/Django/blog_project/user_profiles/00.DefaultProfilePicture/woman-user-circle-icon.png',
         # Add more paths as needed
     ]
 
@@ -120,7 +121,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
             # Save the default image to the storage
             with open(default_profile_picture_path, 'rb') as file:
                 content = file.read()
-                default_picture = ContentFile(content, name='default_profile_picture.jpg')
+                file_extension = Path(default_profile_picture_path).suffix
+                default_picture_name = f'default_profile_picture{file_extension}'
+
+                default_picture = ContentFile(content, name=default_picture_name)
                 validated_data['profile_picture'] = default_picture
 
         return super().create(validated_data)
