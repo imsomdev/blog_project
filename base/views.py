@@ -9,6 +9,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from django.db.models import Count, F
 
 class UserRegistrationView(APIView):
     @swagger_auto_schema(
@@ -136,33 +137,32 @@ class UserProfileView(APIView):
             serializer = UserProfileSerializer(user_profile)
             return Response(serializer.data)
 
-    @swagger_auto_schema(
-        request_body=UserProfileSerializer,
-        responses={201: UserProfileSerializer}
-    )
-    def post(self, request):
-        existing_user = UserProfile.objects.filter(user=request.user).first()
-        if existing_user:
-            return Response({'detail': 'User Profile Already Exists, Use Update to make'})
-        serializer = UserProfileSerializer(data=request.data)
+    # @swagger_auto_schema(
+    #     request_body=UserProfileSerializer,
+    #     responses={201: UserProfileSerializer}
+    # )
+    # def post(self, request):
+    #     existing_user = UserProfile.objects.filter(user=request.user).first()
+    #     if existing_user:
+    #         return Response({'detail': 'User Profile Already Exists, Use Update to make'})
+    #     serializer = UserProfileSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save(user=request.user)
+    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #     else:
+    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # @swagger_auto_schema(
+    #     request_body=UserProfileSerializer,
+    #     responses={201: UserProfileSerializer}
+    # )
+    def patch(self, request):
+        user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+        serializer = UserProfileSerializer(user_profile, data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    @swagger_auto_schema(
-        request_body=UserProfileSerializer,
-        responses={201: UserProfileSerializer}
-    )
-    def put(self, request):
-        existing_user = UserProfile.objects.filter(user=request.user).first()
-        if not existing_user:
-            return Response({'detail': 'Profile not created, use POST to first create profile'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = UserProfileSerializer(existing_user, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
@@ -259,3 +259,16 @@ class FilterRecentPostView(generics.ListAPIView):
     serializer_class = BlogContentSerializer
     
 
+class PopularPostsView(APIView):
+    def get(self, request):
+        # Annotate the queryset with counts of likes and comments for each post
+        posts_with_counts = BlogContent.objects.annotate(
+            like_count=Count('likes'),
+            comment_count=Count('usercomment')
+        )
+        like_weight = 1
+        comment_weight = 2
+        popularity_score = F('like_count') * like_weight + F('comment_count') * comment_weight
+        ordered_posts = posts_with_counts.order_by(-popularity_score)
+        serializer = BlogContentSerializer(ordered_posts, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
