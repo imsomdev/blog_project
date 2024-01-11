@@ -2,9 +2,8 @@ import random
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from .models import BlogContent, UserProfile, UserComment, BlogPostLike
+from .models import BlogContent, UserProfile, UserComment, BlogPostLike, Tag
 from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
 from pathlib import Path
 
 def generate_default_profile_picture(gender):
@@ -64,26 +63,37 @@ class UserLoginSerializer(serializers.Serializer):
         return data
     
 
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['name']
+
 class BlogContentSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
-    tags = serializers.SerializerMethodField()
+    tags = TagSerializer(many=True, read_only=True)
 
     class Meta:
         model = BlogContent
-        # fields = '__all__'
         fields = ['title', 'content', 'image', 'author', 'tags']
 
-    def to_representation(self, instance):
-        # Exclude the 'image' field from the serialized data
-        representation = super().to_representation(instance)
-        representation.pop('image', None)
-        return representation
 
     def get_author(self, obj):
         return obj.author.username
     
-    def get_tags(self, obj):
-        return [tag.name for tag in obj.tags.all()] if obj.tags.exists() else []
+    # BOTH FUNCTIONS  ARE FOR TAG FIELD
+    def to_internal_value(self, data):
+        tags_data = data.get('tags', [])
+        data = super().to_internal_value(data)
+        data['tags'] = tags_data
+        return data
+
+    def create(self, validated_data):
+        tags_data = validated_data.pop('tags', [])
+        instance = super().create(validated_data)
+        if tags_data:
+            instance.tags.set(tags_data)
+        return instance
+    
 
 
 class BlogContentListSerializer(serializers.ModelSerializer):
@@ -114,26 +124,33 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def validate_profile_picture(self, value):
         max_size = 1 * 1024 * 1024  # 1 MB in bytes
         if value.size > max_size:
-            raise serializers.ValidationError('Profile picture size must be under 1MB.')
+            raise serializers.ValidationError('Profile picture size must be under 1 MB.')
         return value
 
-    def create(self, validated_data):
-        gender = validated_data.get('gender', 'U')
-
+    def set_default_profile_picture(self, validated_data):
         # Check if profile picture is not provided or is set to None
         if 'profile_picture' not in validated_data or validated_data['profile_picture'] is None:
-            default_profile_picture_path = generate_default_profile_picture(gender)
+            gender = validated_data.get('gender', 'U')
+            
+            # Check if the profile already has a picture
+            if 'profile_picture' not in self.initial_data:
+                default_profile_picture_path = generate_default_profile_picture(gender)
 
-            # Save the default image to the storage
-            with open(default_profile_picture_path, 'rb') as file:
-                content = file.read()
-                file_extension = Path(default_profile_picture_path).suffix
-                default_picture_name = f'default_profile_picture{file_extension}'
+                # Save the default image to the storage
+                with open(default_profile_picture_path, 'rb') as file:
+                    content = file.read()
+                    file_extension = Path(default_profile_picture_path).suffix
+                    default_picture_name = f'default_profile_picture{file_extension}'
 
-                default_picture = ContentFile(content, name=default_picture_name)
-                validated_data['profile_picture'] = default_picture
+                    default_picture = ContentFile(content, name=default_picture_name)
+                    validated_data['profile_picture'] = default_picture
 
-        return super().create(validated_data)
+    def update(self, instance, validated_data):
+        # Check if 'profile_picture' is provided in the request data
+        if 'profile_picture' in validated_data:
+            self.set_default_profile_picture(validated_data)
+        
+        return super().update(instance, validated_data)
     
 class UserCommentSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
