@@ -128,15 +128,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return value
 
     def set_default_profile_picture(self, validated_data):
-        # Check if profile picture is not provided or is set to None
         if 'profile_picture' not in validated_data or validated_data['profile_picture'] is None:
             gender = validated_data.get('gender', 'U')
-            
-            # Check if the profile already has a picture
             if 'profile_picture' not in self.initial_data:
                 default_profile_picture_path = generate_default_profile_picture(gender)
-
-                # Save the default image to the storage
                 with open(default_profile_picture_path, 'rb') as file:
                     content = file.read()
                     file_extension = Path(default_profile_picture_path).suffix
@@ -146,10 +141,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
                     validated_data['profile_picture'] = default_picture
 
     def update(self, instance, validated_data):
-        # Check if 'profile_picture' is provided in the request data
+        profile = UserProfile.objects.get(user_id=instance.user_id)
+        profile_picture = profile.profile_picture
         if 'profile_picture' in validated_data:
+            profile_picture = validated_data['profile_picture']
+        if not profile_picture:
             self.set_default_profile_picture(validated_data)
-        
         return super().update(instance, validated_data)
     
 class UserCommentSerializer(serializers.ModelSerializer):
