@@ -261,14 +261,10 @@ class FilterRecentPostView(generics.ListAPIView):
 
 class PopularPostsView(APIView):
     def get(self, request):
-        # Annotate the queryset with counts of likes and comments for each post
         posts_with_counts = BlogContent.objects.annotate(
             like_count=Count('likes'),
-            comment_count=Count('usercomment')
         )
-        like_weight = 1
-        comment_weight = 2
-        popularity_score = F('like_count') * like_weight + F('comment_count') * comment_weight
+        popularity_score = F('like_count')
         ordered_posts = posts_with_counts.order_by(-popularity_score)
         serializer = BlogContentSerializer(ordered_posts, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
