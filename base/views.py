@@ -2,14 +2,16 @@ from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics, filters
-from .serializers import UserRegistrationSerializer, UserLoginSerializer, BlogContentSerializer, BlogContentListSerializer, UserProfileSerializer, UserCommentSerializer, BlogPostLikeSerializer
-from .models import BlogContent, UserProfile, UserComment, BlogPostLike 
+from .serializers import UserRegistrationSerializer, UserLoginSerializer, BlogContentSerializer, BlogContentListSerializer, UserProfileSerializer, UserCommentSerializer, BlogPostLikeSerializer, FollowSerializer
+from .models import BlogContent, UserProfile, UserComment, BlogPostLike, Follow
 from django.contrib.auth.models import User
 from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from django.db.models import Count, F
+
 
 class UserRegistrationView(APIView):
     @swagger_auto_schema(
@@ -278,3 +280,47 @@ class TopAuthorsView(APIView):
         ordered_authors = authors_with_post_counts.order_by('-total_posts')[:5]
         serializer = UserProfileSerializer(ordered_authors, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class UsersPostView(APIView):
+    def get(self, request, username):
+        print(request)
+        user = User.objects.get(username=username)
+        users_posts = user.posts.all()
+        serializer = BlogContentListSerializer(users_posts, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class FollowView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        responses={
+            200: "Unfollowed successfully",
+            201: "Followed successfully",
+            400: "Bad Request",
+            401: "Unauthorized",
+            404: "User not found",
+        },
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'user_id': openapi.Schema(type=openapi.TYPE_INTEGER)
+            }
+        )
+    )
+    def post(self, request):
+        user_to_follow_id = request.data.get('user_id')
+        user_to_follow = User.objects.get(id=user_to_follow_id)
+        if request.user == user_to_follow:
+            return Response({'detail': 'You cannot follow/unfollow yourself.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            follow_instance = Follow.objects.get(follower=request.user, following=user_to_follow)
+            follow_instance.delete()
+            serializer = FollowSerializer(follow_instance)
+            return Response({'detail': f'You have unfollowed {user_to_follow.username}.'}, status=status.HTTP_200_OK)
+        
+        except Follow.DoesNotExist:
+            follow_instance = Follow.objects.create(follower=request.user, following=user_to_follow)
+            serializer = FollowSerializer(follow_instance)
+            return Response({'detail': f'You are now following {user_to_follow.username}.', 'data': serializer.data}, status=status.HTTP_201_CREATED)

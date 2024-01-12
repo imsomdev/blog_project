@@ -2,7 +2,7 @@ import random
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from .models import BlogContent, UserProfile, UserComment, BlogPostLike, Tag
+from .models import BlogContent, UserProfile, UserComment, BlogPostLike, Tag, Follow
 from django.core.files.base import ContentFile
 from pathlib import Path
 
@@ -163,3 +163,8 @@ class BlogPostLikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogPostLike
         fields = ['user', 'post', 'created_at']
+
+class FollowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Follow
+        fields = ['follower', 'following', 'created_at'] 
