@@ -2,7 +2,7 @@ from django.urls import path, re_path, include
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-from .views import BlogPostLikeView, UserRegistrationView, UserLoginView, BlogContentView, BlogContentListView,UserProfileView, UserCommentView, DynamicSearchView, FilterRecentPostView, PopularPostsView
+from .views import BlogPostLikeView, UserRegistrationView, UserLoginView, BlogContentView, BlogContentListView,UserProfileView, UserCommentView, DynamicSearchView, FilterRecentPostView, PopularPostsView, TopAuthorsView
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -32,4 +32,5 @@ urlpatterns = [
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('recent-posts', FilterRecentPostView.as_view(), name='FilterRecentPostView'),
     path('popular-post', PopularPostsView.as_view(), name='PopularPostsView'),
+    path('top-authors', TopAuthorsView.as_view(), name='TopAuthorsView'),
 ]

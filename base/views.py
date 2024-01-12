@@ -152,10 +152,10 @@ class UserProfileView(APIView):
     #     else:
     #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # @swagger_auto_schema(
-    #     request_body=UserProfileSerializer,
-    #     responses={201: UserProfileSerializer}
-    # )
+    @swagger_auto_schema(
+        request_body=UserProfileSerializer,
+        responses={201: UserProfileSerializer}
+    )
     def patch(self, request):
         user_profile, created = UserProfile.objects.get_or_create(user=request.user)
 
@@ -267,4 +267,14 @@ class PopularPostsView(APIView):
         popularity_score = F('like_count')
         ordered_posts = posts_with_counts.order_by(-popularity_score)
         serializer = BlogContentSerializer(ordered_posts, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class TopAuthorsView(APIView):
+    def get(self, request):
+        authors_with_post_counts = UserProfile.objects.annotate(
+            total_posts=Count('user__posts')
+        )
+        ordered_authors = authors_with_post_counts.order_by('-total_posts')[:5]
+        serializer = UserProfileSerializer(ordered_authors, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
