@@ -43,7 +43,6 @@ class UserProfile(models.Model):
     ]
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True, null=True)
     profile_picture = models.ImageField(upload_to=profile_picture_path, blank=True, null=True)
-    following = models.ManyToManyField(User, related_name='followers')
     history = HistoricalRecords()
 
     def __str__(self):
