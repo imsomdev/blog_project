@@ -322,7 +322,6 @@ class FollowView(APIView):
         followers = user.followers_set.all()
         serializer = FollowSerializer(following, many=True, context={'request': request})
         serializer_2 = FollowSerializer(followers, many=True, context={'request': request})
-        print(serializer.data[0])
         return Response({
                         "following": [data['following_name'] for data in serializer.data],
                         "followers": [data['follower_name'] for data in serializer_2.data]
