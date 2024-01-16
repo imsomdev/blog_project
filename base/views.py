@@ -175,6 +175,18 @@ class UserProfileView(APIView):
     
 class UserCommentView(APIView):
     permission_classes = [IsAuthenticated]
+    @swagger_auto_schema(
+        responses={200: UserCommentSerializer}
+    )
+    def get(self, request, pk):
+        try:
+            blog_post = BlogContent.objects.get(id=pk)
+        except BlogContent.DoesNotExist:
+            return Response({"error": "Blog post not found"}, status=status.HTTP_404_NOT_FOUND)
+        comment = blog_post.usercomment_set.all()
+        serializer = UserCommentSerializer(comment, many=True)
+        return Response (serializer.data)
+
 
     @swagger_auto_schema(
         request_body=UserCommentSerializer,
