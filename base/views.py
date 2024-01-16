@@ -51,6 +51,10 @@ class BlogContentView(APIView):
                    401: 'Unauthorized'}
     )
     def post(self, request):
+        request.data._mutable = True
+        tag_ids = request.data.get('tags')
+        tag_ids_int = [int(i) for i in tag_ids.split(',')]
+        request.data['tags'] = tag_ids_int
         serializer = BlogContentSerializer(data=request.data)
         if serializer.is_valid():
             # Assuming you have user authentication in place
