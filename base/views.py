@@ -212,6 +212,14 @@ class UserCommentView(APIView):
 
 class BlogPostLikeView(APIView):
     permission_classes = [IsAuthenticated]
+    def get(self, request, pk):
+        try:
+            blog_post = BlogContent.objects.get(pk=pk)
+        except BlogContent.DoesNotExist:
+            return Response({"error": "Blog post not found"}, status=status.HTTP_404_NOT_FOUND)
+        likes = blog_post.like.all();
+        serializer = BlogPostLikeSerializer(likes, many=True)
+        return Response(serializer.data)
 
     @swagger_auto_schema(
         responses={

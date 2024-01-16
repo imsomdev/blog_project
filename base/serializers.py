@@ -169,9 +169,13 @@ class UserCommentSerializer(serializers.ModelSerializer):
         return obj.user.username
     
 class BlogPostLikeSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
     class Meta:
         model = BlogPostLike
-        fields = ['user', 'post', 'created_at']
+        fields = ['user']
+
+    def get_user(self, obj):
+            return obj.user.username
 
 class FollowSerializer(serializers.ModelSerializer):
     class Meta:
