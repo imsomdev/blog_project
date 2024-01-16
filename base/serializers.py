@@ -177,7 +177,20 @@ class BlogPostLikeSerializer(serializers.ModelSerializer):
     def get_user(self, obj):
             return obj.user.username
 
+from rest_framework import serializers
+
 class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follow
-        fields = ['follower', 'following', 'created_at'] 
+        fields = ['follower', 'following', 'created_at']
+
+    def to_representation(self, instance):
+        method = self.context['request'].method
+
+        if method == 'GET':
+            return {
+                'follower_name': instance.follower.username,
+                'following_name': instance.following.username,
+            }
+        elif method == 'POST':
+            return super().to_representation(instance)

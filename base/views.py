@@ -217,7 +217,7 @@ class BlogPostLikeView(APIView):
             blog_post = BlogContent.objects.get(pk=pk)
         except BlogContent.DoesNotExist:
             return Response({"error": "Blog post not found"}, status=status.HTTP_404_NOT_FOUND)
-        likes = blog_post.like.all();
+        likes = blog_post.like.all()
         serializer = BlogPostLikeSerializer(likes, many=True)
         return Response(serializer.data)
 
@@ -316,7 +316,19 @@ class UsersPostView(APIView):
 
 class FollowView(APIView):
     permission_classes = [IsAuthenticated]
-
+    def get(self, request):
+        user = User.objects.get(username=request.user.username)
+        following = user.following_set.all()
+        followers = user.followers_set.all()
+        serializer = FollowSerializer(following, many=True, context={'request': request})
+        serializer_2 = FollowSerializer(followers, many=True, context={'request': request})
+        print(serializer.data[0])
+        return Response({
+                        "following": [data['following_name'] for data in serializer.data],
+                        "followers": [data['follower_name'] for data in serializer_2.data]
+                        }
+                       )
+    
     @swagger_auto_schema(
         responses={
             200: "Unfollowed successfully",
@@ -346,5 +358,5 @@ class FollowView(APIView):
         
         except Follow.DoesNotExist:
             follow_instance = Follow.objects.create(follower=request.user, following=user_to_follow)
-            serializer = FollowSerializer(follow_instance)
+            serializer = FollowSerializer(follow_instance, context={'request': request})
             return Response({'detail': f'You are now following {user_to_follow.username}.', 'data': serializer.data}, status=status.HTTP_201_CREATED)
