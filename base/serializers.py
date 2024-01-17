@@ -2,7 +2,7 @@ import random
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from .models import BlogContent, UserProfile, UserComment, BlogPostLike, Tag, Follow
+from .models import BlogContent, UserProfile, UserComment, BlogPostLike, Tag, Follow, SavedPost
 from django.core.files.base import ContentFile
 from pathlib import Path
 
@@ -194,3 +194,10 @@ class FollowSerializer(serializers.ModelSerializer):
             }
         elif method == 'POST':
             return super().to_representation(instance)
+
+
+class SavedPostSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = SavedPost
+        fields = '__all__'

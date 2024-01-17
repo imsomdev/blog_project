@@ -2,8 +2,8 @@ from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics, filters
-from .serializers import UserRegistrationSerializer, UserLoginSerializer, BlogContentSerializer, BlogContentListSerializer, UserProfileSerializer, UserCommentSerializer, BlogPostLikeSerializer, FollowSerializer
-from .models import BlogContent, UserProfile, UserComment, BlogPostLike, Follow
+from .serializers import UserRegistrationSerializer, UserLoginSerializer, BlogContentSerializer, BlogContentListSerializer, UserProfileSerializer, UserCommentSerializer, BlogPostLikeSerializer, FollowSerializer,SavedPostSerializer
+from .models import BlogContent, UserProfile, UserComment, BlogPostLike, Follow, SavedPost
 from django.contrib.auth.models import User
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -374,13 +374,50 @@ class FilterByTagsView(APIView):
         responses={200: BlogContentSerializer(many=True)},
     )
     def get(self, request):
-        tag_id_param = request.query_params.get('tags')
-        if tag_id_param is None:
-            tag_id_param = request.data.get('tags')
         try:
-            tag_id = int(tag_id_param)
+            tag_id = int(request.query_params.get('tags'))
         except (TypeError, ValueError):
             return Response({"error": "Invalid or missing tag ID"}, status=400)
         posts = BlogContent.objects.filter(tags=tag_id)
         serializer = BlogContentSerializer(posts, many=True)
         return Response(serializer.data)
+    
+
+class SavedPostView(APIView):
+    permission_classes=[IsAuthenticated]
+    def get(self, request):
+        user = User.objects.get(id=request.user.id)
+        posts = user.saved_posts.all()
+        # blog_posts = BlogContent.objects.filter(id=posts.post_id)
+        serializer = SavedPostSerializer(posts, many=True)
+        return Response(serializer.data)
+    @swagger_auto_schema(
+        responses={
+            200: "Post Unsaved",
+            201: "Post Saved",
+            400: "Bad Request",
+            401: "Unauthorized",
+            404: "Post Not Found",
+        },
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'post_id': openapi.Schema(type=openapi.TYPE_INTEGER)
+            }
+        )
+    )
+    def post(self, request):
+        try:
+            post = BlogContent.objects.get(id=request.data.get('post_id'))
+        except(BlogContent.DoesNotExist):
+            return Response({"details": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+        saved_post = SavedPost.objects.filter(user=request.user.id, post=post).first()
+        if saved_post:
+            saved_post.delete()
+            return Response({"details": "Post Unsaved"}, status=status.HTTP_200_OK)
+        else:
+            saved_data = {'user': request.user.id, 'post': post.id}
+            serialzer = SavedPostSerializer(data=saved_data)
+            if serialzer.is_valid():
+                serialzer.save()
+                return Response({"details": "Post Saved"}, status=status.HTTP_201_CREATED)
