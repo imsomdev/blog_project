@@ -359,3 +359,10 @@ class FollowView(APIView):
             follow_instance = Follow.objects.create(follower=request.user, following=user_to_follow)
             serializer = FollowSerializer(follow_instance, context={'request': request})
             return Response({'detail': f'You are now following {user_to_follow.username}.', 'data': serializer.data}, status=status.HTTP_201_CREATED)
+        
+
+class FilterByTagsView(APIView):
+    def get(self, request):
+        posts = BlogContent.objects.filter(tags = int(request.data.get('tags')))
+        serializer = BlogContentSerializer(posts, many=True)
+        return Response(serializer.data)
