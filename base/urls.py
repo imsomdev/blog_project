@@ -3,7 +3,7 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from .views import BlogPostLikeView, UserRegistrationView, UserLoginView, BlogContentView, BlogContentListView,UserProfileView, UserCommentView, DynamicSearchView, FilterRecentPostView, PopularPostsView, TopAuthorsView, UsersPostView, FollowView
-
+from .feeds import BlogContentFeed
 schema_view = get_schema_view(
     openapi.Info(
         title="My Blog",
@@ -35,4 +35,5 @@ urlpatterns = [
     path('top-authors', TopAuthorsView.as_view(), name='TopAuthorsView'),
     path('profile/<str:username>/blog-posts', UsersPostView.as_view(), name='UsersPostView'),
     path('follow', FollowView.as_view(), name='FollowView'),
+    path('rss/', BlogContentFeed(), name='blog_rss_feed'),
 ]
