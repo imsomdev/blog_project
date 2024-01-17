@@ -362,7 +362,25 @@ class FollowView(APIView):
         
 
 class FilterByTagsView(APIView):
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'tags',
+                openapi.IN_QUERY,
+                description="Tag ID as a string",
+                type=openapi.TYPE_STRING,
+            ),
+        ],
+        responses={200: BlogContentSerializer(many=True)},
+    )
     def get(self, request):
-        posts = BlogContent.objects.filter(tags = int(request.data.get('tags')))
+        tag_id_param = request.query_params.get('tags')
+        if tag_id_param is None:
+            tag_id_param = request.data.get('tags')
+        try:
+            tag_id = int(tag_id_param)
+        except (TypeError, ValueError):
+            return Response({"error": "Invalid or missing tag ID"}, status=400)
+        posts = BlogContent.objects.filter(tags=tag_id)
         serializer = BlogContentSerializer(posts, many=True)
         return Response(serializer.data)
