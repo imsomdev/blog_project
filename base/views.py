@@ -218,7 +218,7 @@ class BlogPostLikeView(APIView):
         except BlogContent.DoesNotExist:
             return Response({"error": "Blog post not found"}, status=status.HTTP_404_NOT_FOUND)
         likes = blog_post.like.all()
-        serializer = BlogPostLikeSerializer(likes, many=True)
+        serializer = BlogPostLikeSerializer(likes, many=True, context={'request': request})
         return Response(serializer.data)
 
     @swagger_auto_schema(
@@ -388,8 +388,7 @@ class SavedPostView(APIView):
     def get(self, request):
         user = User.objects.get(id=request.user.id)
         posts = user.saved_posts.all()
-        # blog_posts = BlogContent.objects.filter(id=posts.post_id)
-        serializer = SavedPostSerializer(posts, many=True)
+        serializer = SavedPostSerializer(posts, many=True, context={'request': request})
         return Response(serializer.data)
     @swagger_auto_schema(
         responses={

@@ -169,15 +169,18 @@ class UserCommentSerializer(serializers.ModelSerializer):
         return obj.user.username
     
 class BlogPostLikeSerializer(serializers.ModelSerializer):
-    user = serializers.SerializerMethodField()
     class Meta:
         model = BlogPostLike
-        fields = ['user']
+        fields = ['user', 'post']
 
-    def get_user(self, obj):
-            return obj.user.username
+    def to_representation(self, instance):
+            method = self.context['request'].method
 
-from rest_framework import serializers
+            if method == 'GET':
+                return {
+                    'user': instance.user.username,
+                }
+
 
 class FollowSerializer(serializers.ModelSerializer):
     class Meta:
@@ -200,4 +203,13 @@ class SavedPostSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = SavedPost
-        fields = '__all__'
+        fields = ['post', 'user']
+
+    def to_representation(self, instance):
+            method = self.context['request'].method
+
+            if method == 'GET':
+                return {
+                    'post': instance.post.title,
+                    'content': instance.post.content
+                }
