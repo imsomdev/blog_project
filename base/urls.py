@@ -2,7 +2,7 @@ from django.urls import path, re_path, include
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-from .views import BlogPostLikeView, UserRegistrationView, UserLoginView, BlogContentView, BlogContentListView,UserProfileView, UserCommentView, DynamicSearchView, FilterRecentPostView, PopularPostsView, TopAuthorsView, UsersPostView, FollowView, FilterByTagsView, SavedPostView
+from .views import BlogPostLikeView, UserRegistrationView, UserLoginView, BlogContentView, BlogContentListView,UserProfileView, UserCommentView, DynamicSearchView, FilterRecentPostView, PopularPostsView, TopAuthorsView, UsersPostView, FollowView, FilterByTagsView, SavedPostView, ChoiceView
 from .feeds import BlogContentFeed
 schema_view = get_schema_view(
     openapi.Info(
@@ -38,4 +38,5 @@ urlpatterns = [
     path('rss/', BlogContentFeed(), name='blog_rss_feed'),
     path('filter-by-tags', FilterByTagsView.as_view(),name='FilterByTagsView'),
     path('savepost', SavedPostView.as_view(),name='SavedPostView'),
+    path('choices/<int:choice_id>/vote/', ChoiceView.as_view(), name='ChoiceView'),
 ]
