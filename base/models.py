@@ -74,7 +74,7 @@ class BlogPostLike(models.Model):
 class Follow(models.Model):
     follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following_set')
     following = models.ForeignKey(User, on_delete=models.CASCADE, related_name='followers_set')
-    created_at = models.DateTimeField(auto_now_add=True)
+    
 
     def __str__(self):
         return f'{self.follower.username} follows {self.following.username}'
@@ -91,12 +91,8 @@ class SavedPost(models.Model):
 
 class Question(models.Model):
     question_text = models.CharField(max_length=200)
-    pub_date = models.DateTimeField('date published')
-
-    def was_published_recently(self):
-        now = timezone.now()
-        return now-datetime.timedelta(days=1)<=self.pub_date<= now
-
+    created_at = models.DateTimeField(auto_now_add=True)
+    
     def __str__(self):
         return self.question_text
 
@@ -104,8 +100,15 @@ class Question(models.Model):
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     choice_text = models.CharField(max_length=200)
-    votes = models.IntegerField(default=0)
-    voter = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.choice_text
+ 
+
+class Voters(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
+    voters = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.voters.username

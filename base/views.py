@@ -2,8 +2,8 @@ from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics, filters
-from .serializers import UserRegistrationSerializer, UserLoginSerializer, BlogContentSerializer, BlogContentListSerializer, UserProfileSerializer, UserCommentSerializer, BlogPostLikeSerializer, FollowSerializer,SavedPostSerializer, ChoiceSerializer
-from .models import BlogContent, UserProfile, UserComment, BlogPostLike, Follow, SavedPost, Choice
+from .serializers import UserRegistrationSerializer, UserLoginSerializer, BlogContentSerializer, BlogContentListSerializer, UserProfileSerializer, UserCommentSerializer, BlogPostLikeSerializer, FollowSerializer,SavedPostSerializer, ChoiceSerializer, VotersSerializer
+from .models import BlogContent, UserProfile, UserComment, BlogPostLike, Follow, SavedPost, Question, Choice, Voters
 from django.contrib.auth.models import User
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -420,23 +420,23 @@ class SavedPostView(APIView):
             if serialzer.is_valid():
                 serialzer.save()
                 return Response({"details": "Post Saved"}, status=status.HTTP_201_CREATED)
-            
+                        
 
-class ChoiceView(APIView):
-    def patch(self, request, choice_id):
+class VotersView(APIView):
+    def post(self, request, ques_id, choice_id):
         try:
-            choice = Choice.objects.get(pk=choice_id)
-
-            # Use the serializer to validate the request data and update the choice
-            serializer_data = {'votes': choice.votes + 1, 'voter': request.user.id}
-            serializer = ChoiceSerializer(instance=choice, data=serializer_data, partial=True)
-            
+            existing_vote = Voters.objects.filter(question=ques_id, voters=request.user, choice=choice_id).first()
+            if existing_vote:
+                return Response({'details': 'You have already voted for this choice.'}, status=status.HTTP_400_BAD_REQUEST)
+            existing_vote_for_question = Voters.objects.filter(question=ques_id, voters=request.user).first()
+            if existing_vote_for_question:
+                existing_vote_for_question.delete()
+            serializer_data = {'question': ques_id, 'voters': request.user.id, 'choice': choice_id}
+            serializer = VotersSerializer(data=serializer_data)
             if serializer.is_valid():
                 serializer.save()
                 return Response({"message": "Vote cast successfully."}, status=status.HTTP_200_OK)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
         except Choice.DoesNotExist:
-            return Response({"error": "Choice not found."},
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Choice not found."}, status=status.HTTP_404_NOT_FOUND)
