@@ -10,6 +10,7 @@ from drf_yasg import openapi
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from django.db import connection
 from django.db.models import Count, F, Prefetch
 
 
@@ -426,12 +427,13 @@ class VotersView(APIView):
     permission_classes=[IsAuthenticated]
     
     def get(self, request):
-        questions = Question.objects.prefetch_related(Prefetch('choices', queryset=Choice.objects.only('id', 'choice_text')))
-
-        serialized_data = QuestionSerializer(questions, many=True).data
-
-        return Response(serialized_data)
-
+        response_data = []
+        questions = Question.objects.prefetch_related('choices')
+        for question in questions:
+            question_data = QuestionSerializer(question).data
+            response_data.append(question_data)
+        return Response(response_data)
+    
     @swagger_auto_schema(
         responses={
             200: "Vote Cast Successfully",

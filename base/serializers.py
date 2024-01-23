@@ -105,12 +105,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
     followers_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()
+    id = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
         fields = '__all__'
 
-
+    def get_id(self, obj):
+        return obj.user.id
+    
     def get_followers_count(self, obj):
         return Follow.objects.filter(following=obj.user).count()
 
