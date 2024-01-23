@@ -38,5 +38,5 @@ urlpatterns = [
     path('rss/', BlogContentFeed(), name='blog_rss_feed'),
     path('filter-by-tags', FilterByTagsView.as_view(),name='FilterByTagsView'),
     path('savepost', SavedPostView.as_view(),name='SavedPostView'),
-    path('polls/<int:ques_id>/<int:choice_id>', VotersView.as_view(), name='VotersView'),
+    path('polls', VotersView.as_view(), name='VotersView'),
 ]

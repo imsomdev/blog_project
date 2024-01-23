@@ -2,7 +2,7 @@ from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics, filters
-from .serializers import UserRegistrationSerializer, UserLoginSerializer, BlogContentSerializer, BlogContentListSerializer, UserProfileSerializer, UserCommentSerializer, BlogPostLikeSerializer, FollowSerializer,SavedPostSerializer, ChoiceSerializer, VotersSerializer
+from .serializers import UserRegistrationSerializer, UserLoginSerializer, BlogContentSerializer, BlogContentListSerializer, UserProfileSerializer, UserCommentSerializer, BlogPostLikeSerializer, FollowSerializer,SavedPostSerializer, QuestionSerializer, ChoiceSerializer, VotersSerializer
 from .models import BlogContent, UserProfile, UserComment, BlogPostLike, Follow, SavedPost, Question, Choice, Voters
 from django.contrib.auth.models import User
 from drf_yasg.utils import swagger_auto_schema
@@ -10,7 +10,7 @@ from drf_yasg import openapi
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
-from django.db.models import Count, F
+from django.db.models import Count, F, Prefetch
 
 
 class UserRegistrationView(APIView):
@@ -423,14 +423,48 @@ class SavedPostView(APIView):
                         
 
 class VotersView(APIView):
-    def post(self, request, ques_id, choice_id):
+    permission_classes=[IsAuthenticated]
+    
+    def get(self, request):
+        questions = Question.objects.prefetch_related(Prefetch('choices', queryset=Choice.objects.only('id', 'choice_text')))
+
+        serialized_data = QuestionSerializer(questions, many=True).data
+
+        return Response(serialized_data)
+
+    @swagger_auto_schema(
+        responses={
+            200: "Vote Cast Successfully",
+            400: "Bad Request - Please, select the right option or you have already voted for this choice.",
+            401: "Unauthorized",
+            404: "Choice or Question Not Found",
+        },
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'ques_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'choice_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+            }
+        )
+    )
+    def post(self, request):
         try:
+            ques_id = request.data.get('ques_id')
+            choice_id = request.data.get('choice_id')
+            choices_for_question = Choice.objects.filter(question_id=ques_id)
+            choice_list = []
+            for choice in choices_for_question:
+                choice_list.append(choice.id)
+            if choice_id not in choice_list:
+                return Response({"message": "Please, select right option"}, status=status.HTTP_400_BAD_REQUEST)
+            
             existing_vote = Voters.objects.filter(question=ques_id, voters=request.user, choice=choice_id).first()
             if existing_vote:
                 return Response({'details': 'You have already voted for this choice.'}, status=status.HTTP_400_BAD_REQUEST)
             existing_vote_for_question = Voters.objects.filter(question=ques_id, voters=request.user).first()
             if existing_vote_for_question:
                 existing_vote_for_question.delete()
+
             serializer_data = {'question': ques_id, 'voters': request.user.id, 'choice': choice_id}
             serializer = VotersSerializer(data=serializer_data)
             if serializer.is_valid():

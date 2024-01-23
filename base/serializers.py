@@ -2,7 +2,7 @@ import random
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from .models import BlogContent, UserProfile, UserComment, BlogPostLike, Tag, Follow, SavedPost, Choice, Voters
+from .models import BlogContent, UserProfile, UserComment, BlogPostLike, Tag, Follow, SavedPost, Question, Choice, Voters
 from django.core.files.base import ContentFile
 from pathlib import Path
 
@@ -218,7 +218,14 @@ class SavedPostSerializer(serializers.ModelSerializer):
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Choice
-        fields = ['id', 'choice_text', 'votes', 'voter']
+        fields = ['id', 'choice_text']
+
+class QuestionSerializer(serializers.ModelSerializer):
+    choices = ChoiceSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Question
+        fields = ['id', 'question_text', 'choices']
 
 
 class VotersSerializer(serializers.ModelSerializer):
