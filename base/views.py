@@ -92,10 +92,15 @@ class BlogContentListView(APIView):
         try:
             blog_post = BlogContent.objects.get(pk=pk)
         except BlogContent.DoesNotExist:
-            raise Http404
+            return Response({'detail': 'Blog post not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         if blog_post.author == request.user or request.user.is_staff:
-            serializer = BlogContentSerializer(blog_post, data=request.data)
+            request.data._mutable = True
+            tag_ids = request.data.get('tags')
+            tag_ids_int = [int(i) for i in tag_ids.split(',')]
+            request.data['tags'] = tag_ids_int
+            serializer = BlogContentSerializer(blog_post, data=request.data, partial=True)
+            
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
