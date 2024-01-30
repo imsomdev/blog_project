@@ -188,7 +188,7 @@ class BlogPostLikeSerializer(serializers.ModelSerializer):
 class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follow
-        fields = ['follower', 'following', 'created_at']
+        fields = ['follower', 'following']
 
     def to_representation(self, instance):
         method = self.context['request'].method
