@@ -117,6 +117,7 @@ class Voters(models.Model):
 class Pro(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     is_pro = models.BooleanField()
+    expiration_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return self.user.username

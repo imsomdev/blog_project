@@ -12,6 +12,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from django.db import connection
 from django.db.models import Count, F, Prefetch
+from datetime import timedelta, datetime
 
 
 class UserRegistrationView(APIView):
@@ -500,6 +501,8 @@ class ProSubscriptionView(APIView):
                 return Response('You Already Have Pro')
         except Pro.DoesNotExist:
             if req=='True':
-                Pro.objects.create(user=request.user, is_pro=True)
+                current_date = datetime.now().date()
+                expiration_date = current_date + timedelta(days=30)
+                Pro.objects.create(user=request.user, is_pro=True, expiration_date=expiration_date)
                 return Response('Congarts!! You are a Pro memeber now')
         
