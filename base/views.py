@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics, filters
 from .serializers import UserRegistrationSerializer, UserLoginSerializer, BlogContentSerializer, BlogContentListSerializer, UserProfileSerializer, UserCommentSerializer, BlogPostLikeSerializer, FollowSerializer,SavedPostSerializer, QuestionSerializer, ChoiceSerializer, VotersSerializer
-from .models import BlogContent, UserProfile, UserComment, BlogPostLike, Follow, SavedPost, Question, Choice, Voters
+from .models import BlogContent, UserProfile, UserComment, BlogPostLike, Follow, SavedPost, Question, Choice, Voters, Pro
 from django.contrib.auth.models import User
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -481,3 +481,25 @@ class VotersView(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Choice.DoesNotExist:
             return Response({"error": "Choice not found."}, status=status.HTTP_404_NOT_FOUND)
+
+class ProView(APIView):
+    def get(self, request):
+        user = request.user.id
+        try:
+            if Pro.objects.get(user=user):
+                return Response({"details": "You Have Pro!!"}, status=status.HTTP_200_OK)
+                
+        except Pro.DoesNotExist:
+            return Response({'details':'You are a free memeber'}, status=status.HTTP_400_BAD_REQUEST)
+    
+class ProSubscriptionView(APIView):
+    def post(self, request):
+        req = request.data.get('subs')
+        try:
+            if Pro.objects.get(user=request.user.id):
+                return Response('You Already Have Pro')
+        except Pro.DoesNotExist:
+            if req=='True':
+                Pro.objects.create(user=request.user, is_pro=True)
+                return Response('Congarts!! You are a Pro memeber now')
+        

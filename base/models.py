@@ -112,3 +112,11 @@ class Voters(models.Model):
 
     def __str__(self):
         return self.voters.username
+
+
+class Pro(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    is_pro = models.BooleanField()
+
+    def __str__(self):
+        return self.user.username
