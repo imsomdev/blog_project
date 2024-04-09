@@ -9,11 +9,19 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, IsAdminUser
 from django.db import connection
 from django.db.models import Count, F, Prefetch
 from datetime import timedelta, datetime
+import stripe
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
+stripe.api_key = os.getenv('STRIPE_API_KEY')
+class HealthCheck(APIView):
+    def get(self, request):
+        return Response ("API Running!")
 
 class UserRegistrationView(APIView):
     @swagger_auto_schema(
@@ -505,4 +513,90 @@ class ProSubscriptionView(APIView):
                 expiration_date = current_date + timedelta(days=30)
                 Pro.objects.create(user=request.user, is_pro=True, expiration_date=expiration_date)
                 return Response('Congarts!! You are a Pro memeber now')
+
+class CreateProductView(APIView):
+    # permission_classes=[IsAdminUser]
+
+
+    def post(self, request):
+        name = request.data.get('name')
+        price = int(request.data.get('price') * 100)
+        currency = 'inr'
+
+        product = stripe.Product.create(
+            name=name,
+            default_price_data={
+                'unit_amount': price,
+                'currency': currency,
+                'recurring':{
+                    'interval': 'month',
+                    'interval_count': 1
+                }
+            }
+        )
+        return Response(product)
+    
+class AddCustomer(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+       name = request.data.get('name')
+       email = request.user.email
+       customer = stripe.Customer.create(
+            name=name,
+            email=email
+       )
+       return Response(customer)
+
+class CreatePaymentMethod(APIView):
+    def post(self, request):
+        payment = stripe.PaymentMethod.create(
+        type="card",
+        card={
+            "number": "4242424242424242",
+            "exp_month": 8,
+            "exp_year": 2048,
+            "cvc": "000",
+        },
+        )
+        # stripe.PaymentMethod.attach(
+        #     payment.id,
+        #     customer="cus_PWWQHWxTGdiiGe",
+        #     )
+        return Response(payment)
+
+class AttachCustomerWithPayment(APIView):
+    def post(self, request):
+        attach = stripe.PaymentMethod.attach(
+            'pi_3OhrCvSCCapyiwy40H4Jg8Br',
+            customer="cus_PWqEcX3PkjOIo6",
+            )
         
+        return Response(attach)
+
+class CreateSubscription(APIView):
+    def post(self, request):
+        subscription = stripe.Subscription.create(
+            customer="cus_PWqEcX3PkjOIo6",
+            items=[{"price": "price_1OhUbcSCCapyiwy4RvgxoEoF"}],
+            collection_method='send_invoice',
+            days_until_due=1
+
+            )
+        return Response(subscription)
+    
+class CreatePaymentIntent(APIView):
+    def post(self, request):
+        intent = stripe.SetupIntent.create(
+            # amount=50000,
+            # currency="inr",
+            payment_method="pm_card_visa",
+            customer='cus_PWqEcX3PkjOIo6'
+            )
+        return Response(intent)
+
+class CreatePaymentLink(APIView):
+    def post(self, request):
+        payment_link = stripe.PaymentLink.create(line_items=[{"price": 'price_1OhUbcSCCapyiwy4RvgxoEoF', "quantity": 1}],
+                                                 )
+        return Response(payment_link)

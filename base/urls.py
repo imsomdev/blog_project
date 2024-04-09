@@ -2,7 +2,7 @@ from django.urls import path, re_path, include
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-from .views import BlogPostLikeView, UserRegistrationView, UserLoginView, BlogContentView, BlogContentListView,UserProfileView, UserCommentView, DynamicSearchView, FilterRecentPostView, PopularPostsView, TopAuthorsView, UsersPostView, FollowView, FilterByTagsView, SavedPostView, VotersView, ProView, ProSubscriptionView
+from .views import HealthCheck, AddCustomer, AttachCustomerWithPayment, BlogPostLikeView, CreatePaymentIntent, CreatePaymentLink, CreatePaymentMethod, CreateSubscription, UserRegistrationView, UserLoginView, BlogContentView, BlogContentListView,UserProfileView, UserCommentView, DynamicSearchView, FilterRecentPostView, PopularPostsView, TopAuthorsView, UsersPostView, FollowView, FilterByTagsView, SavedPostView, VotersView, ProView, ProSubscriptionView, CreateProductView
 from .feeds import BlogContentFeed
 schema_view = get_schema_view(
     openapi.Info(
@@ -18,6 +18,7 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+    path('', HealthCheck.as_view(), name='HealthCheck'),
     path('register', UserRegistrationView.as_view(), name='UserRegistrationView'),
     path('login', UserLoginView.as_view(), name='UserLoginView'),
     path('create-post', BlogContentView.as_view(), name='BlogContentView'),
@@ -41,4 +42,11 @@ urlpatterns = [
     path('polls', VotersView.as_view(), name='VotersView'),
     path('check-pro', ProView.as_view(),name='ProView'),
     path('get-pro', ProSubscriptionView.as_view(), name='ProSubscriptionView'),
+    path('create-pro', CreateProductView.as_view(), name='CreateProductView'),
+    path('add-customer', AddCustomer.as_view(), name='AddCustomer'),
+    path('create-payment-method', CreatePaymentMethod.as_view(), name='CreatePaymentMethod'),
+    path('attach-payment', AttachCustomerWithPayment.as_view(), name='AttachCustomerWithPayment'),
+    path('get-subscription', CreateSubscription.as_view(), name='CreateSubscription'),
+    path('create-intent', CreatePaymentIntent.as_view(), name='CreatePaymentIntent'),
+    path('generate-payment-link', CreatePaymentLink.as_view(), name='CreatePaymentLink')
 ]

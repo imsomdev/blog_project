@@ -2,3 +2,4 @@
 venv
 user_profiles
 index.html
+__pycache__
