@@ -10,4 +10,5 @@ python-dotenv==1.0.0
 psycopg2-binary==2.9.9
 drf_api_logger==1.1.15
 pillow==10.2.0
+stripe==8.1.0
 
