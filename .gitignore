@@ -3,3 +3,4 @@ venv
 user_profiles
 index.html
 __pycache__
+.vscode
