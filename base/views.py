@@ -576,7 +576,7 @@ class VotersView(APIView):
             ).first()
             if existing_vote:
                 return Response(
-                    {"details": "You have already voted for this choice."},
+                    {"message": "You have already voted for this choice."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             existing_vote_for_question = Voters.objects.filter(
@@ -600,8 +600,56 @@ class VotersView(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Choice.DoesNotExist:
             return Response(
-                {"error": "Choice not found."}, status=status.HTTP_404_NOT_FOUND
+                {"message": "Choice not found."}, status=status.HTTP_404_NOT_FOUND
             )
+
+
+class PollsResultView(APIView):
+    def post(self, request):
+        ques_id = request.data.get("ques_id")
+        if not ques_id:
+            return Response(
+                {"error": "ques_id is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            question = Question.objects.get(id=ques_id)
+        except Question.DoesNotExist:
+            return Response(
+                {"error": "Question not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        total_votes = Voters.objects.filter(question_id=ques_id).count()
+
+        votes = (
+            Voters.objects.filter(question_id=ques_id)
+            .values("choice_id")
+            .annotate(vote_count=Count("id"))
+            .order_by("-vote_count")
+        )
+
+        # Convert votes to a dictionary for easier lookup
+        votes_dict = {vote["choice_id"]: vote["vote_count"] for vote in votes}
+
+        # Get all choices for the question
+        choices = Choice.objects.filter(question_id=ques_id)
+
+        votes_with_percentage = [
+            {
+                "choice_text": choice.choice_text,
+                "vote_count": votes_dict.get(choice.id, 0),
+                "percentage": (
+                    (votes_dict.get(choice.id, 0) / total_votes * 100)
+                    if total_votes > 0
+                    else 0
+                ),
+            }
+            for choice in choices
+        ]
+
+        response_data = {"total_votes": total_votes, "votes": votes_with_percentage}
+
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 class ProView(APIView):
