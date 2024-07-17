@@ -88,7 +88,7 @@ class BlogContentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BlogContent
-        fields = ["title", "content", "image", "author", "tags"]
+        fields = ["title", "content", "image", "author", "tags", "id"]
 
     def get_author(self, obj):
         return obj.author.username
@@ -163,30 +163,30 @@ class UserProfileSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def set_default_profile_picture(self, validated_data):
-        if (
-            "profile_picture" not in validated_data
-            or validated_data["profile_picture"] is None
-        ):
-            gender = validated_data.get("gender", "U")
-            if "profile_picture" not in self.initial_data:
-                default_profile_picture_path = generate_default_profile_picture(gender)
-                with open(default_profile_picture_path, "rb") as file:
-                    content = file.read()
-                    file_extension = Path(default_profile_picture_path).suffix
-                    default_picture_name = f"default_profile_picture{file_extension}"
+    # def set_default_profile_picture(self, validated_data):
+    #     if (
+    #         "profile_picture" not in validated_data
+    #         or validated_data["profile_picture"] is None
+    #     ):
+    #         gender = validated_data.get("gender", "U")
+    #         if "profile_picture" not in self.initial_data:
+    #             default_profile_picture_path = generate_default_profile_picture(gender)
+    #             with open(default_profile_picture_path, "rb") as file:
+    #                 content = file.read()
+    #                 file_extension = Path(default_profile_picture_path).suffix
+    #                 default_picture_name = f"default_profile_picture{file_extension}"
 
-                    default_picture = ContentFile(content, name=default_picture_name)
-                    validated_data["profile_picture"] = default_picture
+    #                 default_picture = ContentFile(content, name=default_picture_name)
+    #                 validated_data["profile_picture"] = default_picture
 
-    def update(self, instance, validated_data):
-        profile = UserProfile.objects.get(user_id=instance.user_id)
-        profile_picture = profile.profile_picture
-        if "profile_picture" in validated_data:
-            profile_picture = validated_data["profile_picture"]
-        if not profile_picture:
-            self.set_default_profile_picture(validated_data)
-        return super().update(instance, validated_data)
+    # def update(self, instance, validated_data):
+    #     profile = UserProfile.objects.get(user_id=instance.user_id)
+    #     profile_picture = profile.profile_picture
+    #     if "profile_picture" in validated_data:
+    #         profile_picture = validated_data["profile_picture"]
+    #     if not profile_picture:
+    #         self.set_default_profile_picture(validated_data)
+    #     return super().update(instance, validated_data)
 
 
 class UserCommentSerializer(serializers.ModelSerializer):
