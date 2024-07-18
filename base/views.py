@@ -1,7 +1,9 @@
 from django.http import Http404
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics, filters
+from base.pagination.PaginationClass import BlogContentPagination
 from .serializers import (
     UserRegistrationSerializer,
     UserLoginSerializer,
@@ -118,6 +120,7 @@ class BlogContentListView(APIView):
 
     @swagger_auto_schema(responses={200: BlogContentSerializer(many=True)})
     def get(self, request, pk=None):
+        page_size = 2
         if pk is not None:
             try:
                 blog_post = BlogContent.objects.get(pk=pk)
@@ -127,8 +130,11 @@ class BlogContentListView(APIView):
                 raise Http404
         else:
             blogs = BlogContent.objects.all()
-            serializer = BlogContentListSerializer(blogs, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            paginator = PageNumberPagination()
+            paginator.page_size = page_size
+            result_page = paginator.paginate_queryset(blogs, request)
+            serializer = BlogContentListSerializer(result_page, many=True)
+            return paginator.get_paginated_response(serializer.data)
 
     @swagger_auto_schema(
         request_body=BlogContentSerializer,
@@ -340,6 +346,7 @@ class DynamicSearchView(generics.ListAPIView):
     serializer_class = BlogContentSerializer
     search_fields = ["content", "title"]
     filter_backends = (filters.SearchFilter,)
+    pagination_class = BlogContentPagination
 
     @swagger_auto_schema(
         responses={200: BlogContentSerializer(many=True), 404: "Not Found"}
@@ -355,18 +362,27 @@ class DynamicSearchView(generics.ListAPIView):
 
     def list(self, request):
         queryset = self.get_queryset()
-        serializer = BlogContentSerializer(queryset, many=True)
+        page = self.paginate_queryset(queryset)
         if not queryset.exists():
             return Response(
                 {"message": "Please provide some valid search input"},
                 status=status.HTTP_404_NOT_FOUND,
             )
+        if page is not None:
+            serializer = self.get_paginated_response(
+                self.serializer_class(page, many=True).data
+            )
+            return Response(serializer.data)
+        serializer = BlogContentSerializer(queryset, many=True)
         return Response(serializer.data)
 
 
 class FilterRecentPostView(generics.ListAPIView):
-    queryset = BlogContent.objects.order_by("-created_at")
     serializer_class = BlogContentSerializer
+    pagination_class = BlogContentPagination
+
+    def get_queryset(self):
+        return BlogContent.objects.order_by("-created_at")
 
 
 class PopularPostsView(APIView):
