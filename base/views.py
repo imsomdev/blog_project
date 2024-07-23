@@ -120,7 +120,7 @@ class BlogContentListView(APIView):
 
     @swagger_auto_schema(responses={200: BlogContentSerializer(many=True)})
     def get(self, request, pk=None):
-        page_size = 2
+        page_size = 8
         if pk is not None:
             try:
                 blog_post = BlogContent.objects.get(pk=pk)
