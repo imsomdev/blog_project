@@ -1,7 +1,7 @@
 # urls.py
 
 from django.urls import path
-from .views import ChatHistoryView
+from .views import ChatHistoryView, GetUserRoomsAPIView
 
 urlpatterns = [
     path(
@@ -9,4 +9,5 @@ urlpatterns = [
         ChatHistoryView.as_view(),
         name="chat_history",
     ),
+    path("get-user-rooms/", GetUserRoomsAPIView.as_view()),
 ]

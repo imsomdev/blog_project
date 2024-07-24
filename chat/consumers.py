@@ -1,6 +1,6 @@
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import JsonWebsocketConsumer
-from .models import ChatMessage
+from .models import Room, ChatMessage
 
 
 class ChatConsumer(JsonWebsocketConsumer):
@@ -12,6 +12,13 @@ class ChatConsumer(JsonWebsocketConsumer):
             if self.user1 < self.user2
             else f"{self.user2}-{self.user1}"
         )
+
+        room, created = Room.objects.get_or_create(room_name=self.room_name)
+        if created:
+            room.user1 = self.user1
+            room.user2 = self.user2
+            room.save()
+
         self.room_group_name = f"chat_{self.room_name}"
 
         async_to_sync(self.channel_layer.group_add)(
@@ -29,7 +36,11 @@ class ChatConsumer(JsonWebsocketConsumer):
         message = content.get("message")
         sender = content.get("sender")
         receiver = self.user2 if sender == self.user1 else self.user1
-        ChatMessage.objects.create(sender=sender, receiver=receiver, message=message)
+
+        room = Room.objects.get(room_name=self.room_name)
+        ChatMessage.objects.create(
+            room=room, sender=sender, receiver=receiver, message=message
+        )
 
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,

@@ -1,8 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import ChatMessage
+from .models import ChatMessage, Room
 from django.db.models import Q
-from .serializers import ChatMessageSerializer
+from .serializers import ChatMessageSerializer, RoomSerializer
 
 
 class ChatHistoryView(APIView):
@@ -13,4 +13,12 @@ class ChatHistoryView(APIView):
             | (Q(sender=user2) & Q(receiver=user1))
         ).order_by("timestamp")
         serializer = ChatMessageSerializer(messages, many=True)
+        return Response(serializer.data)
+
+
+class GetUserRoomsAPIView(APIView):
+    def get(self, request):
+        username = request.user.username
+        rooms = Room.objects.filter(Q(user1=username) | Q(user2=username))
+        serializer = RoomSerializer(rooms, many=True, context={"request": request})
         return Response(serializer.data)
