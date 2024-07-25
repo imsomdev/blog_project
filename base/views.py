@@ -497,11 +497,17 @@ class FilterByTagsView(APIView):
     def get(self, request):
         try:
             tag_id = int(request.query_params.get("tags"))
+            posts = BlogContent.objects.filter(tags=tag_id)
+            paginator = PageNumberPagination()
+            paginator.page_size = 8
+            result_page = paginator.paginate_queryset(posts, request)
+            serializer = BlogContentListSerializer(result_page, many=True)
+            return paginator.get_paginated_response(serializer.data)
         except (TypeError, ValueError):
             return Response({"error": "Invalid or missing tag ID"}, status=400)
-        posts = BlogContent.objects.filter(tags=tag_id)
-        serializer = BlogContentSerializer(posts, many=True)
-        return Response(serializer.data)
+
+        # serializer = BlogContentSerializer(posts, many=True)
+        # return Response(serializer.data)
 
 
 class SavedPostView(APIView):
