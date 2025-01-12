@@ -7,9 +7,11 @@ This project is a backend API for a blogging platform that enables user authenti
 ## Features
 
 1. **User Authentication:**
+
    - Users can create accounts, log in, and log out.
 
 2. **Blog Post Management:**
+
    - Create a new blog post.
    - Edit an existing blog post.
    - Delete a blog post.
@@ -26,3 +28,7 @@ This project is a backend API for a blogging platform that enables user authenti
 ## Database Used
 
 - PostgreSQL: The world's most advanced open source database
+
+## Command
+
+uvicorn blog_project.asgi:application --port 8000 --workers 4 --log-level debug --reload
